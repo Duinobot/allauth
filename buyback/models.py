@@ -6,7 +6,8 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from .utils import unique_order_id_generator
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save, post_init, pre_init
+from django.dispatch import receiver
 
 
 import uuid
@@ -72,8 +73,11 @@ class SendList(models.Model):
     # exchange_items = models.ManyToManyField(
     #     ExchangeItem, blank=True, verbose_name=_("Exchange"))
 
-    user = models.ForeignKey(get_user_model(), null=True,
-                             blank=True, on_delete=models.SET_NULL)
+    customer = models.ForeignKey(get_user_model(), null=True,
+                                 blank=True, on_delete=models.SET_NULL, related_name="customer")
+
+    modifier = models.ForeignKey(get_user_model(), null=True,
+                                 blank=True, on_delete=models.SET_NULL, related_name="modifier")
 
     created_date = models.DateTimeField(
         _("Date Created"), default=timezone.now)
@@ -93,19 +97,15 @@ class SendList(models.Model):
 # Creating a random order number for Sendlist
 
 
-def pre_save_create_order_id(sender, instance, *args, **kwargs):
-    if not instance.user:
-        instance.user = request.user
+@receiver(pre_save, sender=SendList)
+def _pre_save_create_order_id(sender, instance, *args, **kwargs):
     if not instance.order_id:
         instance.order_id = unique_order_id_generator(instance)
 
 
-pre_save.connect(pre_save_create_order_id, sender=SendList)
-
-
 class BuybackItem(models.Model):
-    user = models.ForeignKey(get_user_model(), null=True,
-                             blank=True, on_delete=models.CASCADE)
+    customer = models.ForeignKey(get_user_model(), null=True,
+                                 blank=True, on_delete=models.CASCADE)
     sendlist = models.ForeignKey(SendList, null=True, on_delete=models.CASCADE)
     buyback_item = models.ForeignKey(Buyback, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=1)
@@ -116,8 +116,8 @@ class BuybackItem(models.Model):
 
 
 class ExchangeItem(models.Model):
-    user = models.ForeignKey(get_user_model(), null=True,
-                             blank=True, on_delete=models.CASCADE)
+    customer = models.ForeignKey(get_user_model(), null=True,
+                                 blank=True, on_delete=models.CASCADE)
     sendlist = models.ForeignKey(SendList, null=True, on_delete=models.CASCADE)
     exchange_item = models.ForeignKey(Exchange, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=1)
