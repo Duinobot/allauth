@@ -1,3 +1,4 @@
+from django.contrib import admin
 from django.db.models.base import Model
 from user.models import Customer
 from django.db import models
@@ -74,7 +75,7 @@ class SendList(models.Model):
     #     ExchangeItem, blank=True, verbose_name=_("Exchange"))
 
     customer = models.ForeignKey(get_user_model(), null=True,
-                                 blank=True, on_delete=models.SET_NULL, related_name="customer")
+                                 blank=True, on_delete=models.SET_NULL, related_name="order")
 
     modifier = models.ForeignKey(get_user_model(), null=True,
                                  blank=True, on_delete=models.SET_NULL, related_name="modifier")
@@ -104,24 +105,18 @@ def _pre_save_create_order_id(sender, instance, *args, **kwargs):
 
 
 class BuybackItem(models.Model):
-    customer = models.ForeignKey(get_user_model(), null=True,
-                                 blank=True, on_delete=models.CASCADE)
     sendlist = models.ForeignKey(SendList, null=True, on_delete=models.CASCADE)
     buyback_item = models.ForeignKey(Buyback, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=1)
-    confirmed = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.quantity} of {self.buyback_item.name}"
 
 
 class ExchangeItem(models.Model):
-    customer = models.ForeignKey(get_user_model(), null=True,
-                                 blank=True, on_delete=models.CASCADE)
     sendlist = models.ForeignKey(SendList, null=True, on_delete=models.CASCADE)
     exchange_item = models.ForeignKey(Exchange, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=1)
-    confirmed = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.quantity} of {self.exchange_item.name}"

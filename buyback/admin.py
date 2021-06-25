@@ -24,10 +24,28 @@ class ExchangeAdmin(ImportExportMixin, admin.ModelAdmin):
 
 class BuybackItemTabularInline(admin.TabularInline):
     model = BuybackItem
+    readonly_fields = ['price', 'line_price', ]
+
+    @admin.display(description='price')
+    def price(self, obj):
+        return obj.buyback_item.price
+
+    @admin.display(description='total')
+    def line_price(self, obj):
+        return obj.buyback_item.price * obj.quantity
 
 
 class ExchangeItemTabularInline(admin.TabularInline):
     model = ExchangeItem
+    readonly_fields = ['price', 'line_price', ]
+
+    @admin.display(description='price')
+    def price(self, obj):
+        return obj.exchange_item.price
+
+    @admin.display(description='total')
+    def line_price(self, obj):
+        return obj.exchange_item.price * obj.quantity
 
 
 class SendListAdmin(ImportExportMixin, admin.ModelAdmin):

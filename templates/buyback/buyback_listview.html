@@ -1,0 +1,8 @@
+<h1>Buyback</h1>
+<ul>
+  {% for buyback in object_list %}
+  <li>{{ buyback.name }} - {{ buyback.price }}</li>
+  {% empty %}
+  <li>No buyback yet.</li>
+  {% endfor %}
+</ul>
